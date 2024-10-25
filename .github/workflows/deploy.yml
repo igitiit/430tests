@@ -39,7 +39,12 @@ jobs:
       run: |
         echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
         ssh -o StrictHostKeyChecking=no -i private_key ${USER}@${HOST} '
+          # Log in to ECR from the EC2 instance
+          aws ecr get-login-password --region us-east-1 | sudo docker login --username AWS --password-stdin $ECR_REGISTRY
+          
+          # Pull the Docker image from ECR
           sudo docker pull \$ECR_REGISTRY/blog_project-web:\$IMAGE_TAG
+          
           sudo docker stop django_blog || true
           sudo docker rm django_blog || true
           sudo docker run -d --name django_blog -p 8000:8000 ${{ steps.login-ecr.outputs.registry }}/blog_project-web:${{ github.sha }}
