@@ -35,7 +35,7 @@ ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
     '0.0.0.0',
-    '54.234.7.127',
+    '54.208.148.44',
     'coursera-mysql-instance.cr2ygeme6l7y.us-east-1.rds.amazonaws.com'
 ]
 # Application definition
