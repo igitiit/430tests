@@ -34,7 +34,7 @@ jobs:
     - name: Deploy to EC2
       env:
         PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
-        HOST: 52.54.247.29 
+        HOST: 54.172.108.139
         USER: ubuntu
       run: |
         echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
