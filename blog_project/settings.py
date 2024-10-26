@@ -29,9 +29,15 @@ SECRET_KEY = 'django-insecure-3w_x&e0jcy5)7_-%l_z=zreuv7b8+0f%082w*$+=&5g21+le4p
 
 #ALLOWED_HOSTS = []
 
-DEBUG = int(os.environ.get('DEBUG', default=0))
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0']
-
+DEBUG = int(os.environ.get('DEBUG', default=1))
+#ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0']
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    '0.0.0.0',
+    '54.234.7.127',
+    'coursera-mysql-instance.cr2ygeme6l7y.us-east-1.rds.amazonaws.com'
+]
 # Application definition
 
 INSTALLED_APPS = [
@@ -85,7 +91,7 @@ DATABASES = {
         'NAME': 'blog_db',
         'USER': 'coursera',
         'PASSWORD': 'coursera',
-        'HOST': 'coursera-mysql-instance2.cr2ygeme6l7y.us-east-1.rds.amazonaws.com',
+        'HOST': 'coursera-mysql-instance.cr2ygeme6l7y.us-east-1.rds.amazonaws.com',
         'PORT': '3306',
         'default': dj_database_url.config(default=os.environ.get('DATABASE_URL'))
     }
@@ -132,4 +138,3 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-ALLOWED_HOSTS = ['34.207.242.131', 'ec2-34-207-242-131.compute-1.amazonaws.com']
