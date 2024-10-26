@@ -34,13 +34,29 @@ jobs:
     - name: Deploy to EC2
       env:
         PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
-        HOST: 54.157.201.200
+        HOST: 54.172.108.139
         USER: ubuntu
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        IMAGE_TAG: ${{ github.sha }}
       run: |
         echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
-        ssh -o StrictHostKeyChecking=no -i private_key ${USER}@${HOST} '
-          sudo docker pull ${{ steps.login-ecr.outputs.registry }}/blog_project-web:${{ github.sha }}
+        ssh -o StrictHostKeyChecking=no -i private_key ${USER}@${HOST} "
+          # Activate the virtual environment
+          source /home/ubuntu/.aws-cli-venv/bin/activate
+
+          # Export the ECR_REGISTRY variable to make it available
+          export ECR_REGISTRY=$ECR_REGISTRY
+
+          # Log in to ECR from the EC2 instance
+          aws ecr get-login-password --region us-east-1 | sudo docker login --username AWS --password-stdin \$ECR_REGISTRY
+
+          # Stop and remove the existing container, if it exists
           sudo docker stop django_blog || true
           sudo docker rm django_blog || true
-          sudo docker run -d --name django_blog -p 8000:8000 ${{ steps.login-ecr.outputs.registry }}/blog_project-web:${{ github.sha }}
-        '
+
+          # Pull the Docker image from ECR
+          sudo docker pull \$ECR_REGISTRY/blog_project-web:$IMAGE_TAG
+
+          # Run the Docker container
+          sudo docker run -d --name django_blog -p 8000:8000 \$ECR_REGISTRY/blog_project-web:$IMAGE_TAG
+        "
