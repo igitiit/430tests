@@ -41,6 +41,9 @@ jobs:
       run: |
         echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
         ssh -o StrictHostKeyChecking=no -i private_key ${USER}@${HOST} '
+          # Activate the virtual environment
+          source /home/ubuntu/.aws-cli-venv/bin/activate
+
           # Log in to ECR from the EC2 instance
           aws ecr get-login-password --region us-east-1 | sudo docker login --username AWS --password-stdin $ECR_REGISTRY
 
