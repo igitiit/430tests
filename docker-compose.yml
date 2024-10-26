@@ -1,10 +1,13 @@
 services:
   web:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+      # No specific platform here; buildx will handle it
     command: gunicorn blog_project.wsgi:application --bind 0.0.0.0:8000
     volumes:
       - .:/code
     ports:
-      - "8000:8000"
+      - "8000:8000"  # Ensure this port is available or change it if necessary
     environment:
-      - DATABASE_URL=mysql://coursera:coursera@coursera-mysql-instance2.cr2ygeme6l7y.us-east-1.rds.amazonaws.com:3306/blog_db
+      - DATABASE_URL=mysql://coursera:coursera@coursera-mysql-instance.cr2ygeme6l7y.us-east-1.rds.amazonaws.com:3306/blog_db
