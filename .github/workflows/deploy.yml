@@ -34,7 +34,7 @@ jobs:
     - name: Deploy to EC2
       env:
         PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
-        HOST: 54.172.108.139
+        HOST: 54.208.148.44
         USER: ubuntu
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         IMAGE_TAG: ${{ github.sha }}
