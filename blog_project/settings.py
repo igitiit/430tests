@@ -31,12 +31,13 @@ SECRET_KEY = 'django-insecure-3w_x&e0jcy5)7_-%l_z=zreuv7b8+0f%082w*$+=&5g21+le4p
 
 DEBUG = int(os.environ.get('DEBUG', default=1))
 #ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0']
-ALLOWED_HOSTS = [
-    'localhost',
-    '127.0.0.1',
-    '0.0.0.0',
-    '54.208.148.44',
-    'coursera-mysql-instance.cr2ygeme6l7y.us-east-1.rds.amazonaws.com'
+#ALLOWED_HOSTS = [
+ #   'localhost',
+ #   '127.0.0.1',
+ #   '0.0.0.0',
+ #   '54.208.148.44',
+ #   'coursera-mysql-instance.cr2ygeme6l7y.us-east-1.rds.amazonaws.com'
+ "[*]"
 ]
 # Application definition
 
