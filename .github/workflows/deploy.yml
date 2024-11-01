@@ -73,3 +73,5 @@ jobs:
           # Run the Docker container
           sudo docker run -d --name django_blog -p 8000:8000 \$ECR_REGISTRY/blog_project-web:$IMAGE_TAG
         "
+    - name: Print Public IP
+      run: echo "Public IP is $PUBLIC_IP
