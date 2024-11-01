@@ -30,11 +30,24 @@ jobs:
       run: |
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        
+    - name: Get EC2 instance Public IP
+      id: get-ip
+      run: |
+        INSTANCE_ID=$(aws ec2 describe-instances \
+          --filters "Name=tag:Name,Values=MyEC2Instance" \
+          --query "Reservations[*].Instances[*].InstanceId" \
+          --output text)
+        PUBLIC_IP=$(aws ec2 describe-instances \
+          --instance-ids $INSTANCE_ID \
+          --query "Reservations[*].Instances[*].PublicIpAddress" \
+          --output text)
+        echo "PUBLIC_IP=$PUBLIC_IP" >> $GITHUB_ENV
 
     - name: Deploy to EC2
       env:
         PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
-        HOST: 3.88.36.135
+        HOST: ${{ env.PUBLIC_IP }}
         USER: ubuntu
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         IMAGE_TAG: ${{ github.sha }}
