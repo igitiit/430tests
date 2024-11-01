@@ -43,9 +43,6 @@ jobs:
           --query "Reservations[*].Instances[*].PublicIpAddress" \
           --output text)
         echo "PUBLIC_IP=$PUBLIC_IP" >> $GITHUB_ENV
-
-    - name: Print Public IP
-      run: echo "Public IP is $PUBLIC_IP
       
     - name: Deploy to EC2
       env:
