@@ -65,8 +65,8 @@ jobs:
           aws ecr get-login-password --region us-east-1 | sudo docker login --username AWS --password-stdin \$ECR_REGISTRY
 
           # Stop and remove the existing container, if it exists
-          sudo docker stop django_blog || true
-          sudo docker rm django_blog || true
+          sudo docker stop blog_project || true
+          sudo docker rm blog_project || true
 
           # Pull the Docker image from ECR
           sudo docker pull \$ECR_REGISTRY/blog_project-web:$IMAGE_TAG
