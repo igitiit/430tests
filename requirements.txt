@@ -17,7 +17,7 @@ jmespath==1.0.1
 moto==5.0.20
 mysqlclient==2.1.0
 packaging==24.2
-pillow==11.0.0
+pillow==10.4.0
 pluggy==1.5.0
 pycparser==2.22
 pytest==8.3.3
