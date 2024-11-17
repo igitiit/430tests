@@ -80,7 +80,11 @@ jobs:
           sudo docker pull \$ECR_REGISTRY/blog_project-web:$IMAGE_TAG
 
           # Run the Docker container
-          sudo docker run -d --name blog_web -p 8000:8000 $ECR_REGISTRY/blog_project-web:$IMAGE_TAG
+          # sudo docker run -d --name blog_web -p 8000:8000 $ECR_REGISTRY/blog_project-web:$IMAGE_TAG
+          sudo docker run -d --name blog_web -p 8000:8000 \
+          -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
+          -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
+          $ECR_REGISTRY/blog_project-web:$IMAGE_TAG
 
           # Run Django migrations
           sudo docker exec blog_web python manage.py migrate
