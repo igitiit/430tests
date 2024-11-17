@@ -73,6 +73,12 @@ jobs:
           aws ecr get-login-password --region us-east-1 | sudo docker login --username AWS --password-stdin \$ECR_REGISTRY
 
           # Stop and remove the existing container, if it exists
+          if sudo docker ps -a --format '{{.Names}}' | grep -Eq "^blog_web\$"; then
+              echo "Removing existing container 'blog_web'..."
+              sudo docker rm -f blog_web
+          fi
+
+          # Stop and remove the existing container, if it exists
           sudo docker stop blog_project || true
           sudo docker rm blog_project || true
 
