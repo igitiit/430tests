@@ -39,7 +39,7 @@ jobs:
       run: |
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-        
+
     - name: Get EC2 instance Public IP
       id: get-ip
       run: |
@@ -52,7 +52,7 @@ jobs:
           --query "Reservations[*].Instances[*].PublicIpAddress" \
           --output text)
         echo "PUBLIC_IP=$PUBLIC_IP" >> $GITHUB_ENV
-      
+
     - name: Deploy to EC2
       env:
         PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
@@ -81,7 +81,7 @@ jobs:
 
           # Run the Docker container
           sudo docker run -d --name blog_web -p 8000:8000 $ECR_REGISTRY/blog_project-web:$IMAGE_TAG
-          
+
           # Run Django migrations
           sudo docker exec blog_web python manage.py migrate
         "
