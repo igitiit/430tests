@@ -20,12 +20,12 @@ jobs:
         aws-region: us-east-1
 
     - name: Deploy to EC2
-        env:
-          AWS_STORAGE_BUCKET_NAME: ${{ secrets.AWS_STORAGE_BUCKET_NAME }}
-        run: |
-          # Deployment commands
-          echo "Deploying to EC2..."
-          echo "Using bucket $AWS_STORAGE_BUCKET_NAME"
+      env:
+        AWS_STORAGE_BUCKET_NAME: ${{ secrets.AWS_STORAGE_BUCKET_NAME }}
+      run: |
+        # Deployment commands
+        echo "Deploying to EC2..."
+        echo "Using bucket $AWS_STORAGE_BUCKET_NAME"
 
     - name: Login to Amazon ECR
       id: login-ecr
