@@ -90,6 +90,7 @@ jobs:
           sudo docker run -d --name blog_web -p 8000:8000 \
           -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
           -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
+          -e AWS_STORAGE_BUCKET_NAME=${{ secrets.AWS_STORAGE_BUCKET_NAME }} \
           $ECR_REGISTRY/blog_project-web:$IMAGE_TAG
 
           # Run Django migrations
