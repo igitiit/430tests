@@ -79,8 +79,8 @@ jobs:
           fi
 
           # Stop and remove the existing container, if it exists
-          sudo docker stop blog_project || true
-          sudo docker rm blog_project || true
+          #sudo docker stop blog_project || true
+          #sudo docker rm blog_project || true
 
           # Pull the Docker image from ECR
           sudo docker pull \$ECR_REGISTRY/blog_project-web:$IMAGE_TAG
