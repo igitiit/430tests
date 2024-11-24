@@ -9,3 +9,7 @@ This project sets up a Django environment with automated Git operations.
 
 ## Usage
 - Instructions on using the bash script for automated git operations.
+
+# Blog Post Form
+
+![Blog Post Form](images/test.png)
