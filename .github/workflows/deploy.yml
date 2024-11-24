@@ -19,14 +19,6 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-1
 
-    - name: Deploy to EC2
-      env:
-        AWS_STORAGE_BUCKET_NAME: ${{ secrets.AWS_STORAGE_BUCKET_NAME }}
-      run: |
-        # Deployment commands
-        echo "Deploying to EC2..."
-        echo "Using bucket $AWS_STORAGE_BUCKET_NAME"
-
     - name: Login to Amazon ECR
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
@@ -60,40 +52,32 @@ jobs:
         USER: ubuntu
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         IMAGE_TAG: ${{ github.sha }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_STORAGE_BUCKET_NAME: ${{ secrets.AWS_STORAGE_BUCKET_NAME }}
       run: |
         echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
-        ssh -o StrictHostKeyChecking=no -i private_key ${USER}@${HOST} "
+        sh -o StrictHostKeyChecking=no -i private_key ${USER}@${HOST} "
           # Activate the virtual environment
           source /home/ubuntu/.aws-cli-venv/bin/activate
 
-          # Export the ECR_REGISTRY variable to make it available
-          export ECR_REGISTRY=$ECR_REGISTRY
-
           # Log in to ECR from the EC2 instance
-          aws ecr get-login-password --region us-east-1 | sudo docker login --username AWS --password-stdin \$ECR_REGISTRY
+          aws ecr get-login-password --region us-east-1 | sudo docker login --username AWS --password-stdin $ECR_REGISTRY
 
-          # Stop and remove the existing container, if it exists
-          if sudo docker ps -a --format '{{.Names}}' | grep -Eq "^blog_web\$"; then
-              echo "Removing existing container 'blog_web'..."
-              sudo docker rm -f blog_web
-          fi
-
-          # Stop and remove the existing container, if it exists
-          #sudo docker stop blog_project || true
-          #sudo docker rm blog_project || true
+          # Stop and remove existing containers
+          sudo docker stop blog_web django_blog || true
+          sudo docker rm blog_web django_blog || true
 
           # Pull the Docker image from ECR
-          sudo docker pull \$ECR_REGISTRY/blog_project-web:$IMAGE_TAG
+          sudo docker pull $ECR_REGISTRY/blog_project-web:$IMAGE_TAG
 
           # Run the Docker container
-          # sudo docker run -d --name blog_web -p 8000:8000 $ECR_REGISTRY/blog_project-web:$IMAGE_TAG
           sudo docker run -d --name blog_web -p 8000:8000 \
-          -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
-          -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
-          -e AWS_STORAGE_BUCKET_NAME=${{ secrets.AWS_STORAGE_BUCKET_NAME }} \
+          -e AWS_ACCESS_KEY_ID='$AWS_ACCESS_KEY_ID' \
+          -e AWS_SECRET_ACCESS_KEY='$AWS_SECRET_ACCESS_KEY' \
+          -e AWS_STORAGE_BUCKET_NAME='$AWS_STORAGE_BUCKET_NAME' \
           $ECR_REGISTRY/blog_project-web:$IMAGE_TAG
 
           # Run Django migrations
           sudo docker exec blog_web python manage.py migrate
         "
-
