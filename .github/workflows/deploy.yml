@@ -17,15 +17,18 @@
       # Log in to ECR from the EC2 instance
       aws ecr get-login-password --region us-east-1 | sudo docker login --username AWS --password-stdin $ECR_REGISTRY
 
-      # Stop and remove existing containers
-      sudo docker stop blog_web django_blog || true
-      sudo docker rm blog_web django_blog || true
+      # Stop and remove existing container if it exists
+      if [ \"\$(docker ps -aq -f name=blog_web)\" ]; then
+          echo 'Stopping and removing existing container ''blog_web''...'
+          sudo docker stop blog_web
+          sudo docker rm blog_web
+      fi
 
       # Pull the Docker image from ECR
       sudo docker pull $ECR_REGISTRY/blog_project-web:$IMAGE_TAG
 
-      # Run the Docker container
-      sudo docker run -d --name blog_web -p 8000:8000 \
+      # Run the Docker container with --rm option for automatic removal on stop
+      sudo docker run --rm -d --name blog_web -p 8000:8000 \
       -e AWS_ACCESS_KEY_ID='$AWS_ACCESS_KEY_ID' \
       -e AWS_SECRET_ACCESS_KEY='$AWS_SECRET_ACCESS_KEY' \
       -e AWS_STORAGE_BUCKET_NAME='$AWS_STORAGE_BUCKET_NAME' \
