@@ -149,3 +149,22 @@ AWS_S3_REGION_NAME = 'us-east-1'
 AWS_S3_FILE_OVERWRITE = False
 AWS_DEFAULT_ACL = None
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'ERROR',  # or 'DEBUG'/'INFO' as needed
+            'class': 'logging.FileHandler',
+            'filename': 'django_exceptions.log',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'ERROR',  # or 'DEBUG'/'INFO' as needed
+            'propagate': True,
+        },
+    },
+}
