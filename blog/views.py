@@ -1,15 +1,7 @@
-from django.shortcuts import render
-
-# Create your views here.
-
-#from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from .forms import PostForm
-from django.shortcuts import render,redirect, get_object_or_404
-#from .forms import BlogPostForm
 from .models import Post
-#from .models import BlogPost
-
-from .monitoring import log_to_cloudwatch
+from .monitoring import log_to_cloudwatch  # Import the logging function
 
 def post_list(request):
     posts = Post.objects.all()
@@ -22,15 +14,19 @@ def create_post(request):
             post = form.save(commit=False)
             post.author = request.user
             post.save()
-            log_to_cloudwatch(f"New post created: {post.title}", "DjangoBlogLogs2", "PostCreation2")
+
+            # Log the creation of a new post to CloudWatch
+            log_to_cloudwatch(
+                f"New post created: {post.title}",
+                log_group_name="DjangoBlogLogs2",
+                log_stream_name="PostCreation2",
+                aws_profile="James"
+            )
             return redirect('post_detail', pk=post.pk)
     else:
-        #form = BlogPostForm()
         form = PostForm()
     return render(request, 'blog/create_post.html', {'form': form})
 
 def post_detail(request, pk):
-    #post = get_object_or_404(BlogPost, pk=pk)
     post = get_object_or_404(Post, pk=pk)
     return render(request, 'blog/post_detail.html', {'post': post})
-
