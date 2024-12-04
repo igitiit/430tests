@@ -1,21 +1,21 @@
 import boto3
 import time
-from botocore.exceptions import ClientError
+from botocore.exceptions import ClientError, NoCredentialsError, PartialCredentialsError
 
-def log_to_cloudwatch(message, log_group_name, log_stream_name, aws_profile):
-    """
-    Logs a message to the specified CloudWatch log group and stream.
+# Initialize AWS session and CloudWatch client
+AWS_PROFILE = "James"
+LOG_GROUP_NAME = "DjangoBlogLogs2"
+session = boto3.Session(profile_name=AWS_PROFILE)
+cloudwatch = session.client('logs')
 
-    Args:
-        message (str): The log message to be posted.
-        log_group_name (str): The name of the CloudWatch log group.
-        log_stream_name (str): The name of the CloudWatch log stream.
-        aws_profile (str): The AWS CLI profile to use.
-    """
-    # Create a session using the specified AWS profile
-    session = boto3.Session(profile_name=aws_profile)
-    cloudwatch = session.client('logs')
-
+def log_to_cloudwatch(message, log_group_name=LOG_GROUP_NAME, log_stream_name="DjangoBlogLogs2", aws_profile=AWS_PROFILE):
+    global cloudwatch
+    
+    # Create a new session and client if using a different profile
+    if aws_profile != AWS_PROFILE:
+        session = boto3.Session(profile_name=aws_profile)
+        cloudwatch = session.client('logs')
+    
     try:
         # Ensure the log stream exists
         try:
@@ -37,6 +37,8 @@ def log_to_cloudwatch(message, log_group_name, log_stream_name, aws_profile):
             ]
         )
         print(f"Log event successfully posted to {log_stream_name}.")
+    except (NoCredentialsError, PartialCredentialsError):
+        print("Error: Unable to locate or incomplete AWS credentials.")
     except ClientError as e:
         print(f"Failed to log to CloudWatch: {e}")
     except Exception as e:
