@@ -153,17 +153,24 @@ DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
     'handlers': {
         'file': {
-            'level': 'ERROR',  # or 'DEBUG'/'INFO' as needed
+            'level': 'DEBUG',
             'class': 'logging.FileHandler',
-            'filename': 'django_exceptions.log',
+            'filename': 'debug.log',  # File path for logs
+            'formatter': 'verbose',
         },
     },
     'loggers': {
         'django': {
             'handlers': ['file'],
-            'level': 'ERROR',  # or 'DEBUG'/'INFO' as needed
+            'level': 'DEBUG',
             'propagate': True,
         },
     },
