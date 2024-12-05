@@ -3,7 +3,7 @@ import time
 from botocore.exceptions import ClientError, NoCredentialsError, PartialCredentialsError
 
 # Initialize AWS session and CloudWatch client
-AWS_PROFILE = "James"
+AWS_PROFILE = "default"
 LOG_GROUP_NAME = "DjangoBlogLogs2"
 session = boto3.Session(profile_name=AWS_PROFILE)
 cloudwatch = session.client('logs')
