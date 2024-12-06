@@ -23,11 +23,6 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Authenticate Docker with AWS ECR
-        run: |
-          aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ***.dkr.ecr.us-east-1.amazonaws.com
-
-
       - name: Build, tag, and push image to Amazon ECR
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -64,6 +59,7 @@ jobs:
           echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
           ssh -o StrictHostKeyChecking=no -i private_key ${USER}@${HOST} "
             source /home/ubuntu/.aws-cli-venv/bin/activate
+            # Authenticate Docker with AWS ECR
             aws ecr get-login-password --region us-east-1 | sudo docker login --username AWS --password-stdin $ECR_REGISTRY
             if [ \"\$(docker ps -aq -f name=blog_web)\" ]; then
               echo 'Stopping and removing existing container ''blog_web''...'
@@ -77,4 +73,4 @@ jobs:
               -e AWS_STORAGE_BUCKET_NAME='$AWS_STORAGE_BUCKET_NAME' \
               $ECR_REGISTRY/blog_project-web:$IMAGE_TAG
             sudo docker exec blog_web python manage.py migrate
-          "
+           "
