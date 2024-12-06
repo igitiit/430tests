@@ -13,7 +13,7 @@ def log_to_cloudwatch(message, log_group_name=LOG_GROUP_NAME, log_stream_name="D
     
     # Create a new session and client if using a different profile
     if aws_profile != AWS_PROFILE:
-        session = boto3.Session(profile_name=aws_profile)
+        session = boto3.Session(profile_name="default")
         cloudwatch = session.client('logs')
     
     try:
