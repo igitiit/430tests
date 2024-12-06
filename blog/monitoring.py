@@ -2,20 +2,14 @@ import boto3
 import time
 from botocore.exceptions import ClientError, NoCredentialsError, PartialCredentialsError
 
-# Initialize AWS session and CloudWatch client
-AWS_PROFILE = "default"
+# AWS Configuration
 LOG_GROUP_NAME = "DjangoBlogLogs2"
-session = boto3.Session(profile_name=AWS_PROFILE)
-cloudwatch = session.client('logs')
+LOG_STREAM_NAME = "DjangoBlogLogs2"
 
-def log_to_cloudwatch(message, log_group_name=LOG_GROUP_NAME, log_stream_name="DjangoBlogLogs2", aws_profile=AWS_PROFILE):
-    global cloudwatch
-    
-    # Create a new session and client if using a different profile
-    if aws_profile != AWS_PROFILE:
-        session = boto3.Session(profile_name="default")
-        cloudwatch = session.client('logs')
-    
+# Initialize CloudWatch client
+cloudwatch = boto3.client('logs')
+
+def log_to_cloudwatch(message, log_group_name=LOG_GROUP_NAME, log_stream_name=LOG_STREAM_NAME):
     try:
         # Ensure the log stream exists
         try:
@@ -43,3 +37,8 @@ def log_to_cloudwatch(message, log_group_name=LOG_GROUP_NAME, log_stream_name="D
         print(f"Failed to log to CloudWatch: {e}")
     except Exception as e:
         print(f"Unexpected error: {e}")
+
+# Example usage
+if __name__ == "__main__":
+    test_message = "This is a test log message."
+    log_to_cloudwatch(test_message)
