@@ -2,8 +2,10 @@ import boto3
 import time
 from botocore.exceptions import ClientError, NoCredentialsError, PartialCredentialsError
 
-# Initialize a session with the 'James' profile
-session = boto3.Session(profile_name='default')
+# Initialize a session with the 'James' profile?
+# No need for profile_name
+session = boto3.Session()
+#session = boto3.Session(profile_name='default')
 cloudwatch = session.client('logs')
 
 # Constants
