@@ -23,7 +23,7 @@ def create_post(request):
 
                 # Log the creation of a new post to both CloudWatch and local file
                 message = f"New post created: {post.title}"
-                log_to_cloudwatch(message, log_group_name="DjangoBlogLogs2", log_stream_name="PostCreation2", aws_profile="James")
+                log_to_cloudwatch(message, log_group_name="DjangoBlogLogs2", log_stream_name="PostCreation2", aws_profile="default")
                 logging.info(message)  # Log to local file
 
                 # Test CloudWatch logging
