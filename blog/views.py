@@ -35,7 +35,7 @@ def create_post(request):
     except Exception as e:
         # Log the exception to both CloudWatch and local file
         error_message = f"Exception occurred: {str(e)}"
-        log_to_cloudwatch(error_message, log_group_name="DjangoBlogLogs2", log_stream_name="PostExceptions", aws_profile="James")
+        log_to_cloudwatch(error_message, log_group_name="DjangoBlogLogs2", log_stream_name="PostExceptions")
         logging.error(error_message)  # Log to local file
         raise e
 
@@ -49,7 +49,7 @@ def test_cloudwatch_logging():
     """Function to log a test message to CloudWatch."""
     try:
         test_message = "Test log message to verify CloudWatch integration."
-        log_to_cloudwatch(test_message, log_group_name="DjangoBlogLogs2", log_stream_name="TestLogs", aws_profile="James")
+        log_to_cloudwatch(test_message, log_group_name="DjangoBlogLogs2", log_stream_name="TestLogs")
         logging.info("CloudWatch test logging succeeded.")
     except Exception as e:
         logging.error(f"Failed to log test message to CloudWatch: {str(e)}")
