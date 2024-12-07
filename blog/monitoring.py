@@ -39,6 +39,6 @@ def log_to_cloudwatch(message, log_group_name=LOG_GROUP_NAME, log_stream_name=LO
         print(f"Unexpected error: {e}")
 
 # Example usage
-if __name__ == "__main__":
-    test_message = "This is a test log message."
-    log_to_cloudwatch(test_message)
+#if __name__ == "__main__":
+    #test_message = "This is a test log message."
+    #log_to_cloudwatch(test_message)
