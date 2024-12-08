@@ -102,16 +102,5 @@ def create_post(request):
 
 # View for displaying a post detail
 def post_detail(request, pk):
-    post = get_object_or_404(Post, pk=pk)
-    return render(request, 'blog/post_detail.html', {'post': post})
+    post = get_object_or_404(Post, pk=
 
-# Function to test CloudWatch logging
-def test_cloudwatch_logging(message):
-    """
-    Function to log a test message to CloudWatch.
-    """
-    try:
-        log_to_cloudwatch(message, log_group_name="DjangoBlogLogs2", log_stream_name="TestLogs")
-        logging.info("CloudWatch test logging succeeded.")
-    except Exception as e:
-        logging.error(f"Failed to log test message to CloudWatch: {str(e)}", exc_info=True)
