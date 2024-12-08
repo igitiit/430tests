@@ -1,0 +1,64 @@
+import boto3
+import time
+from botocore.exceptions import ClientError, NoCredentialsError, PartialCredentialsError
+
+def check_identity():
+    try:
+        sts_client = boto3.client('sts')
+        identity = sts_client.get_caller_identity()
+        print(f"Current IAM Identity: {identity}")
+    except NoCredentialsError:
+        print("AWS credentials not found!")
+
+check_identity()
+
+# AWS Configuration
+LOG_GROUP_NAME = "DjangoBlogLogs2"
+LOG_STREAM_NAME = "DjangoBlogLogs2"
+
+# Initialize CloudWatch client
+cloudwatch = boto3.client('logs', region_name='us-east-1')
+
+def log_to_cloudwatch(message, log_group_name=LOG_GROUP_NAME, log_stream_name=LOG_STREAM_NAME):
+    try:
+        # Get the latest sequence token
+        response = cloudwatch.describe_log_streams(
+            logGroupName=log_group_name,
+            logStreamNamePrefix=log_stream_name
+        )
+        log_stream = next(
+            (stream for stream in response['logStreams'] if stream['logStreamName'] == log_stream_name), None
+        )
+        
+        if not log_stream:
+            print(f"Log stream {log_stream_name} not found.")
+            return
+        
+        sequence_token = log_stream.get('uploadSequenceToken')
+
+        # Create the log event
+        timestamp = int(time.time() * 1000)
+        put_response = cloudwatch.put_log_events(
+            logGroupName=log_group_name,
+            logStreamName=log_stream_name,
+            logEvents=[
+                {
+                    "timestamp": timestamp,
+                    "message": message,
+                }
+            ],
+            sequenceToken=sequence_token
+        )
+        print(f"Log successfully posted: {put_response}")
+
+    except (NoCredentialsError, PartialCredentialsError):
+        print("Error: AWS credentials are missing or incomplete.")
+    except ClientError as e:
+        print(f"Failed to log to CloudWatch: {e}")
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+
+# Example usage
+if __name__ == "__main__":
+    test_message = "This is a test log message 4."
+    log_to_cloudwatch(test_message)
