@@ -27,7 +27,7 @@ def create_post(request):
                 logging.info(message)  # Log to local file
 
                 # Test CloudWatch logging
-                #test_cloudwatch_logging()
+                test_cloudwatch_logging(message)
 
                 return redirect('post_detail', pk=post.pk)
         else:
@@ -45,11 +45,11 @@ def post_detail(request, pk):
     post = get_object_or_404(Post, pk=pk)
     return render(request, 'blog/post_detail.html', {'post': post})
 
-def test_cloudwatch_logging():
+def test_cloudwatch_logging(message):
     """Function to log a test message to CloudWatch."""
     try:
         test_message = "Test log message to verify CloudWatch integration."
-        log_to_cloudwatch(test_message, log_group_name="DjangoBlogLogs2", log_stream_name="TestLogs")
+        log_to_cloudwatch(message, log_group_name="DjangoBlogLogs2", log_stream_name="TestLogs")
         logging.info("CloudWatch test logging succeeded.")
     except Exception as e:
         logging.error(f"Failed to log test message to CloudWatch: {str(e)}")
