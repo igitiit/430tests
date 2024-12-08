@@ -9,7 +9,6 @@ from .models import Post
 # Configure local logging
 logging.basicConfig(filename='local_app.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-# Function to log messages to CloudWatch
 def log_to_cloudwatch(message, log_group_name, log_stream_name):
     """
     Send a log message to AWS CloudWatch Logs using PutLogEvents.
@@ -38,7 +37,9 @@ def log_to_cloudwatch(message, log_group_name, log_stream_name):
         log_streams = response.get('logStreams', [])
         if not log_streams:
             raise Exception(f"Log stream '{log_stream_name}' not found in log group '{log_group_name}'.")
+        
         sequence_token = log_streams[0].get('uploadSequenceToken', None)
+        logging.info(f"Sequence token retrieved: {sequence_token}")
 
         # Prepare the log event
         timestamp = int(time.time() * 1000)  # Current time in milliseconds
