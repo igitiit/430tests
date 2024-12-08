@@ -27,7 +27,7 @@ def create_post(request):
                 logging.info(message)  # Log to local file
 
                 # Test CloudWatch logging
-                test_cloudwatch_logging()
+                #test_cloudwatch_logging()
 
                 return redirect('post_detail', pk=post.pk)
         else:
