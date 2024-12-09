@@ -33,21 +33,6 @@ def ensure_log_group(log_group_name):
             logging.error(f"Failed to create log group: {e}")
             raise
 
-def get_sequence_token(log_group_name, log_stream_name):
-    try:
-        response = cloudwatch.describe_log_streams(
-            logGroupName=log_group_name,
-            logStreamNamePrefix=log_stream_name,
-        )
-        log_stream = next(
-            (stream for stream in response['logStreams'] if stream['logStreamName'] == log_stream_name), None)
-        
-        if log_stream:
-            return log_stream.get('uploadSequenceToken')
-    except ClientError as e:
-        logging.error(f"Error getting sequence token: {e}")
-        return None
-
 def log_to_cloudwatch(message, log_group_name=LOG_GROUP_NAME, log_stream_name=LOG_STREAM_NAME):
     try:
         # Ensure the log group exists
@@ -59,32 +44,23 @@ def log_to_cloudwatch(message, log_group_name=LOG_GROUP_NAME, log_stream_name=LO
         except ClientError as e:
             if "ResourceAlreadyExistsException" not in str(e):
                 raise
-        
-        # Get the sequence token for the stream
-        sequence_token = get_sequence_token(log_group_name, log_stream_name)
-        
+
+        # Hardcoded sequence token
+        sequence_token = "49658339775332739911746350691148010844023758224235693874"
+
         # Create the log event
         timestamp = int(time.time() * 1000)
-        
         log_event = {
             "timestamp": timestamp,
             "message": message,
         }
 
-        if sequence_token:
-            response = cloudwatch.put_log_events(
-                logGroupName=log_group_name,
-                logStreamName=log_stream_name,
-                logEvents=[log_event],
-                sequenceToken=sequence_token  # Pass the token if it's available
-            )
-        else:
-            response = cloudwatch.put_log_events(
-                logGroupName=log_group_name,
-                logStreamName=log_stream_name,
-                logEvents=[log_event]
-            )
-        
+        response = cloudwatch.put_log_events(
+            logGroupName=log_group_name,
+            logStreamName=log_stream_name,
+            logEvents=[log_event],
+            sequenceToken=sequence_token
+        )
         print(f"Log event successfully posted to {log_stream_name}.")
     except (NoCredentialsError, PartialCredentialsError):
         logging.error("Error: Unable to locate or incomplete AWS credentials.")

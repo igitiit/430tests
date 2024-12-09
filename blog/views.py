@@ -37,12 +37,8 @@ def log_to_cloudwatch(message, log_group_name=LOG_GROUP_NAME, log_stream_name=LO
             if e.response['Error']['Code'] != 'ResourceAlreadyExistsException':
                 logging.error(f"Failed to create log stream '{log_stream_name}': {e}", exc_info=True)
 
-        # Get the sequence token for the log stream
-        response = cloudwatch.describe_log_streams(logGroupName=log_group_name, logStreamNamePrefix=log_stream_name)
-        log_streams = response.get('logStreams', [])
-        if not log_streams:
-            raise Exception(f"Log stream '{log_stream_name}' not found in log group '{log_group_name}'.")
-        sequence_token = log_streams[0].get('uploadSequenceToken', None)
+        # Hardcoded sequence token
+        sequence_token = "49658339775332739911746350691148010844023758224235693874"
 
         # Prepare the log event
         timestamp = int(time.time() * 1000)  # Current time in milliseconds
@@ -56,11 +52,10 @@ def log_to_cloudwatch(message, log_group_name=LOG_GROUP_NAME, log_stream_name=LO
             logGroupName=log_group_name,
             logStreamName=log_stream_name,
             logEvents=[log_event],
-            sequenceToken=sequence_token  # Include token if required
+            sequenceToken=sequence_token
         )
         logging.info(f"Log sent to CloudWatch: {put_log_response}")
         return put_log_response
-
     except ClientError as e:
         logging.error(f"Failed to send log to CloudWatch: {e}", exc_info=True)
         raise
@@ -83,12 +78,10 @@ def create_post(request):
                 post = form.save(commit=False)
                 post.author = request.user
                 post.save()
-
                 # Log the creation of a new post to both CloudWatch and local file
                 message = f"New post created: {post.title}"
                 log_to_cloudwatch(message, log_group_name="DjangoBlogLogs2", log_stream_name="PostCreation2")
                 logging.info(message)  # Log to local file
-
                 return redirect('post_detail', pk=post.pk)
         else:
             form = PostForm()
@@ -98,7 +91,6 @@ def create_post(request):
         log_to_cloudwatch(error_message, log_group_name="DjangoBlogLogs2", log_stream_name="PostExceptions")
         logging.error(error_message)  # Log to local file
         raise e
-
     return render(request, 'blog/create_post.html', {'form': form})
 
 # View for displaying a post detail
