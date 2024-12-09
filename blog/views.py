@@ -17,36 +17,33 @@ LOG_STREAM_NAME = "PostCreation"
 cloudwatch = boto3.client('logs')
 
 def log_to_cloudwatch(message, log_group_name=LOG_GROUP_NAME, log_stream_name=LOG_STREAM_NAME):
-    """
-    Send a log message to AWS CloudWatch Logs using PutLogEvents.
-    """
+    """ Send a log message to AWS CloudWatch Logs using PutLogEvents. """
     try:
         # Ensure the log group exists
         try:
-            cloudwatch.describe_log_groups(logGroupNamePrefix=log_group_name)
+            cloudwatch.create_log_group(logGroupName=log_group_name)
+            logging.info(f"Log group '{log_group_name}' created.")
         except ClientError as e:
-            if 'ResourceNotFoundException' in str(e):
-                cloudwatch.create_log_group(logGroupName=log_group_name)
-                logging.info(f"Log group '{log_group_name}' created.")
-            else:
-                logging.error(f"Error checking log group: {e}", exc_info=True)
+            if e.response['Error']['Code'] != 'ResourceAlreadyExistsException':
+                logging.error(f"Failed to create log group '{log_group_name}': {e}", exc_info=True)
 
         # Ensure the log stream exists
         try:
-            cloudwatch.describe_log_streams(logGroupName=log_group_name, logStreamNamePrefix=log_stream_name)
+            cloudwatch.create_log_stream(logGroupName=log_group_name, logStreamName=log_stream_name)
+            logging.info(f"Log stream '{log_stream_name}' created.")
         except ClientError as e:
-            if 'ResourceNotFoundException' in str(e):
-                cloudwatch.create_log_stream(logGroupName=log_group_name, logStreamName=log_stream_name)
-                logging.info(f"Log stream '{log_stream_name}' created.")
-            else:
-                logging.error(f"Error checking log stream: {e}", exc_info=True)
+            if e.response['Error']['Code'] != 'ResourceAlreadyExistsException':
+                logging.error(f"Failed to create log stream '{log_stream_name}': {e}", exc_info=True)
 
-        # Get the sequence token for the log stream
-        response = cloudwatch.describe_log_streams(logGroupName=log_group_name, logStreamNamePrefix=log_stream_name)
+        # Get the latest sequence token
+        response = cloudwatch.describe_log_streams(
+            logGroupName=log_group_name,
+            logStreamNamePrefix=log_stream_name
+        )
         log_streams = response.get('logStreams', [])
         if not log_streams:
             raise Exception(f"Log stream '{log_stream_name}' not found in log group '{log_group_name}'.")
-        sequence_token = log_streams[0].get('uploadSequenceToken', None)
+        sequence_token = log_streams[0].get('uploadSequenceToken')
 
         # Prepare the log event
         timestamp = int(time.time() * 1000)  # Current time in milliseconds
@@ -56,12 +53,15 @@ def log_to_cloudwatch(message, log_group_name=LOG_GROUP_NAME, log_stream_name=LO
         }
 
         # Send the log event
-        put_log_response = cloudwatch.put_log_events(
-            logGroupName=log_group_name,
-            logStreamName=log_stream_name,
-            logEvents=[log_event],
-            sequenceToken=sequence_token  # Include token if required
-        )
+        put_log_kwargs = {
+            'logGroupName': log_group_name,
+            'logStreamName': log_stream_name,
+            'logEvents': [log_event]
+        }
+        if sequence_token:
+            put_log_kwargs['sequenceToken'] = sequence_token
+
+        put_log_response = cloudwatch.put_log_events(**put_log_kwargs)
         logging.info(f"Log sent to CloudWatch: {put_log_response}")
         return put_log_response
 
