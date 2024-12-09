@@ -10,8 +10,8 @@ from .models import Post
 logging.basicConfig(filename='local_app.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # AWS CloudWatch logging configuration
-LOG_GROUP_NAME = "DjangoBlogLogs2"
-LOG_STREAM_NAME = "PostCreation2"
+LOG_GROUP_NAME = "DjangoBlogLogs3"
+LOG_STREAM_NAME = "PostCreation"
 
 # Initialize CloudWatch client
 cloudwatch = boto3.client('logs')

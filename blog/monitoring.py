@@ -6,8 +6,8 @@ from botocore.exceptions import ClientError
 # Initialize the CloudWatch client
 cloudwatch = boto3.client('logs')
 
-LOG_GROUP_NAME = "DjangoBlogLogs2"
-LOG_STREAM_NAME = "PostCreation2"
+LOG_GROUP_NAME = "DjangoBlogLogs3"
+LOG_STREAM_NAME = "PostCreation"
 
 def ensure_log_group(log_group_name):
     """Ensure the log group exists."""
