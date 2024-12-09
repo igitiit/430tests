@@ -71,3 +71,52 @@ def log_to_cloudwatch(message, log_group_name=LOG_GROUP_NAME, log_stream_name=LO
     except Exception as e:
         logging.error(f"Unexpected error: {e}", exc_info=True)
         raise
+
+# View for listing posts
+def post_list(request):
+    posts = Post.objects.all()  # Get all posts from the database
+    return render(request, 'blog/post_list.html', {'posts': posts})
+
+# View for creating a new post
+def create_post(request):
+    logging.debug("Reached create_post function")  # Debug message to verify logging
+    try:
+        if request.method == 'POST':
+            form = PostForm(request.POST, request.FILES)
+            if form.is_valid():
+                post = form.save(commit=False)
+                post.author = request.user
+                post.save()
+
+                # Log the creation of a new post to both CloudWatch and local file
+                message = f"New post created: {post.title}"
+                log_to_cloudwatch(message, log_group_name="DjangoBlogLogs2", log_stream_name="PostCreation2")
+                logging.info(message)  # Log to local file
+
+                return redirect('post_detail', pk=post.pk)
+        else:
+            form = PostForm()
+    except Exception as e:
+        # Log the exception to both CloudWatch and local file
+        error_message = f"Exception occurred: {str(e)}"
+        log_to_cloudwatch(error_message, log_group_name="DjangoBlogLogs2", log_stream_name="PostExceptions")
+        logging.error(error_message)  # Log to local file
+        raise e
+
+    return render(request, 'blog/create_post.html', {'form': form})
+
+# View for displaying a post detail
+def post_detail(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    return render(request, 'blog/post_detail.html', {'post': post})
+
+# Function to test CloudWatch logging
+def test_cloudwatch_logging(message):
+    """
+    Function to log a test message to CloudWatch.
+    """
+    try:
+        log_to_cloudwatch(message, log_group_name="DjangoBlogLogs2", log_stream_name="TestLogs")
+        logging.info("CloudWatch test logging succeeded.")
+    except Exception as e:
+        logging.error(f"Failed to log test message to CloudWatch: {str(e)}", exc_info=True)
