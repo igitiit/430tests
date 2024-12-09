@@ -38,7 +38,7 @@ def log_to_cloudwatch(message, log_group_name=LOG_GROUP_NAME, log_stream_name=LO
                 logging.error(f"Failed to create log stream '{log_stream_name}': {e}", exc_info=True)
 
         # Hardcoded sequence token
-        sequence_token = "49658339775332739911746350691148010844023758224235693874"
+        sequence_token = "49039859612205958146379088404712293159822848430144983396"
 
         # Prepare the log event
         timestamp = int(time.time() * 1000)  # Current time in milliseconds

@@ -46,7 +46,7 @@ def log_to_cloudwatch(message, log_group_name=LOG_GROUP_NAME, log_stream_name=LO
                 raise
 
         # Hardcoded sequence token
-        sequence_token = "49658339775332739911746350691148010844023758224235693874"
+        sequence_token = "49039859612205958146379088404712293159822848430144983396"
 
         # Create the log event
         timestamp = int(time.time() * 1000)
@@ -69,10 +69,4 @@ def log_to_cloudwatch(message, log_group_name=LOG_GROUP_NAME, log_stream_name=LO
     except Exception as e:
         logging.error(f"Unexpected error: {e}", exc_info=True)
 
-def main():
-    # Test the logging functionality by posting a test message
-    message = "Test log message"
-    log_to_cloudwatch(message)
 
-if __name__ == "__main__":
-    main()
