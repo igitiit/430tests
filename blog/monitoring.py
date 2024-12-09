@@ -16,7 +16,7 @@ def ensure_log_group(log_group_name):
     except ClientError as e:
         logging.error(f"Failed to describe log groups: {e}")
         raise
-
+ 
 def get_sequence_token(log_group_name, log_stream_name):
     """Retrieve the next sequence token from the log stream."""
     try:
