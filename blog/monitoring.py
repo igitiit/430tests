@@ -2,7 +2,6 @@ import boto3
 import time
 import logging
 from botocore.exceptions import ClientError, NoCredentialsError, PartialCredentialsError
-import requests
 
 # AWS Configuration
 LOG_GROUP_NAME = "DjangoBlogLogs2"
@@ -60,15 +59,25 @@ def log_to_cloudwatch(message, log_group_name=LOG_GROUP_NAME, log_stream_name=LO
             if "ResourceAlreadyExistsException" not in str(e):
                 raise
         
-        # Get the sequence token for the stream
+        # Get the sequence token for the stream (fetch and store it)
         sequence_token = get_sequence_token(log_group_name, log_stream_name)
+        
+        # If sequence token is available, use it for subsequent logs
+        if sequence_token:
+            with open("sequence_token.txt", "w") as f:
+                f.write(sequence_token)
         
         # Create the log event
         timestamp = int(time.time() * 1000)
+        
         log_event = {
             "timestamp": timestamp,
             "message": message,
         }
+
+        # Use the stored token (if available)
+        with open("sequence_token.txt", "r") as f:
+            sequence_token = f.read().strip()
 
         if sequence_token:
             response = cloudwatch.put_log_events(
@@ -77,14 +86,12 @@ def log_to_cloudwatch(message, log_group_name=LOG_GROUP_NAME, log_stream_name=LO
                 logEvents=[log_event],
                 sequenceToken=sequence_token  # Pass the token if it's available
             )
-            sequence_token = response['nextSequenceToken']  # Update token for future use
         else:
             response = cloudwatch.put_log_events(
                 logGroupName=log_group_name,
                 logStreamName=log_stream_name,
                 logEvents=[log_event]
             )
-            sequence_token = response['nextSequenceToken']  # Update token for future use
         
         print(f"Log event successfully posted to {log_stream_name}.")
     except (NoCredentialsError, PartialCredentialsError):
