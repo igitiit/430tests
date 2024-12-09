@@ -25,46 +25,34 @@ def create_post(request):
                 message = f"New post created: {post.title}"
                 
                 # Send log to CloudWatch using the log_to_cloudwatch function from monitoring.py
+                log_to_cloudwatch(message, log_group_name="
+# views.py (continued)
                 log_to_cloudwatch(message, log_group_name="DjangoBlogLogs2", log_stream_name="PostCreation2")
+                logging.info(message)  # Log to local file
 
-                # Log the same message locally for debugging
-                logging.info(message)
-
-                # Redirect to the post's detail page after successful creation
+                # Test CloudWatch logging (you can comment this out later once verified)
+                test_message = "Test log for CloudWatch"
+                log_to_cloudwatch(test_message, log_group_name="DjangoBlogLogs2", log_stream_name="TestLogs")
+                
                 return redirect('post_detail', pk=post.pk)
         else:
             form = PostForm()
-
     except Exception as e:
-        # Log any exceptions that occur to CloudWatch and locally
-        error_message = f"Exception occurred while creating a post: {str(e)}"
+        # Log the exception to both CloudWatch and local file
+        error_message = f"Exception occurred: {str(e)}"
         log_to_cloudwatch(error_message, log_group_name="DjangoBlogLogs2", log_stream_name="PostExceptions")
         logging.error(error_message)  # Log to local file
-        raise e  # Reraise exception to be handled by Django error handling
+        raise e
 
     return render(request, 'blog/create_post.html', {'form': form})
 
+# View for listing posts
 def post_list(request):
-    """
-    View for listing all blog posts.
-    """
     posts = Post.objects.all()
     return render(request, 'blog/post_list.html', {'posts': posts})
 
+# View for displaying post detail
 def post_detail(request, pk):
-    """
-    View for displaying the details of a specific post.
-    """
     post = get_object_or_404(Post, pk=pk)
     return render(request, 'blog/post_detail.html', {'post': post})
 
-# Function to test CloudWatch logging (can be called during debugging if necessary)
-def test_cloudwatch_logging(message):
-    """
-    Function to log a test message to CloudWatch for debugging purposes.
-    """
-    try:
-        log_to_cloudwatch(message, log_group_name="DjangoBlogLogs2", log_stream_name="TestLogs")
-        logging.info("CloudWatch test logging succeeded.")
-    except Exception as e:
-        logging.error(f"Failed to log test message to CloudWatch: {str(e)}", exc_info=True)
