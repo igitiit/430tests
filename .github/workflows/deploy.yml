@@ -1,22 +1,15 @@
 name: Deploy to EC2
 
 on:
-  push:
-    branches: [main]
-  workflow_dispatch:
+  workflow_run:
+    workflows: ["Django CI"]  # Name of the workflow defined in django.yml
+    types:
+      - completed
 
 jobs:
-  # Dummy job with no dependencies
-  dummy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout the code from GitHub repository
-        uses: actions/checkout@v2
-
-  # Deploy job that depends on the test job from django.yml
   deploy:
     runs-on: ubuntu-latest
-    needs: [dummy, test]  # This ensures deploy job runs only if the test job is successful
+    needs: [test]  # This ensures the deploy job runs only if the test job in django.yml is successful
 
     steps:
       # Checkout the code from GitHub repository
