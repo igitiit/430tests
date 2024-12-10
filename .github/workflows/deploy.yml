@@ -6,9 +6,17 @@ on:
   workflow_dispatch:
 
 jobs:
+  # Dummy job with no dependencies
+  dummy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the code from GitHub repository
+        uses: actions/checkout@v2
+
+  # Deploy job that depends on the test job from django.yml
   deploy:
     runs-on: ubuntu-latest
-    needs: [test]  # This ensures deploy job runs only if test job is successful in django.yml
+    needs: [dummy, test]  # This ensures deploy job runs only if the test job is successful
 
     steps:
       # Checkout the code from GitHub repository
