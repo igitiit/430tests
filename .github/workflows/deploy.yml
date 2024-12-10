@@ -1,23 +1,13 @@
 name: Deploy to EC2
 
 on:
-  workflow_run:
-    workflows: ["Django CI"]  # Name of the workflow defined in django.yml
-    types:
-      - completed
+  push:
+    branches: [main]
+  workflow_dispatch:
 
 jobs:
-  # Dummy job with no dependencies
-  dummy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout the code from GitHub repository
-        uses: actions/checkout@v2
-
-  # Deploy job that depends on the dummy job
   deploy:
     runs-on: ubuntu-latest
-    needs: dummy  # This ensures the deploy job runs after the dummy job is complete
 
     steps:
       # Checkout the code from GitHub repository
@@ -43,9 +33,9 @@ jobs:
           ECR_REPOSITORY: blog_project-web
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
-          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:latest $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          echo "ECR Registry: $ECR_REGISTRY"
+          echo "Image Tag: $IMAGE_TAG"
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
       # Get the public IP of the EC2 instance
@@ -71,11 +61,13 @@ jobs:
           USER: ubuntu
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_STORAGE_BUCKET_NAME: ${{ secrets.AWS_STORAGE_BUCKET_NAME }}
         run: |
           echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
 
           ssh -o StrictHostKeyChecking=no -i private_key ${USER}@${HOST} << 'EOF'
-            set -e
             # Authenticate Docker with AWS ECR
             aws ecr get-login-password --region us-east-1 | sudo docker login --username AWS --password-stdin $ECR_REGISTRY
 
@@ -86,9 +78,9 @@ jobs:
               sudo docker rm blog_web
             fi
 
-            # Pull the latest image from ECR
-            echo "Pulling the latest Docker image from ECR..."
-            sudo docker pull $ECR_REGISTRY/blog_project-web:latest
+            # Pull the new image from ECR
+            echo "Pulling the new Docker image from ECR..."
+            sudo docker pull $ECR_REGISTRY/blog_project-web:$IMAGE_TAG
 
             # Run the new container
             echo "Running the new Docker container..."
@@ -96,17 +88,9 @@ jobs:
               -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
               -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
               -e AWS_STORAGE_BUCKET_NAME=$AWS_STORAGE_BUCKET_NAME \
-              $ECR_REGISTRY/blog_project-web:latest
-
-            # Verify the container is running
-            echo "Verifying the container is running..."
-            if ! sudo docker ps -f name=blog_web --format '{{.Names}}' | grep -q 'blog_web'; then
-              echo "Container failed to start!"
-              exit 1
-            fi
+              $ECR_REGISTRY/blog_project-web:$IMAGE_TAG
 
             # Run database migrations inside the container
             echo "Running database migrations inside the container..."
             sudo docker exec blog_web python manage.py migrate || echo "Migration failed. Check container logs."
           EOF
-
