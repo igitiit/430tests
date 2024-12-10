@@ -10,10 +10,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout the code from GitHub repository
       - uses: actions/checkout@v2
 
-      # Configure AWS credentials
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -21,24 +19,19 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      # Login to Amazon ECR (Ensure Docker is authenticated to ECR)
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      # Build, tag, and push Docker image to ECR
       - name: Build, tag, and push image to Amazon ECR
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: blog_project-web
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          echo "ECR Registry: $ECR_REGISTRY"
-          echo "Image Tag: $IMAGE_TAG"
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-      # Get the public IP of the EC2 instance
       - name: Get EC2 instance Public IP
         id: get-ip
         run: |
@@ -51,9 +44,7 @@ jobs:
             --query "Reservations[*].Instances[*].PublicIpAddress" \
             --output text)
           echo "PUBLIC_IP=$PUBLIC_IP" >> $GITHUB_ENV
-          echo "Instance Public IP: $PUBLIC_IP"
 
-      # Deploy to EC2 instance
       - name: Deploy to EC2
         env:
           PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
@@ -66,31 +57,19 @@ jobs:
           AWS_STORAGE_BUCKET_NAME: ${{ secrets.AWS_STORAGE_BUCKET_NAME }}
         run: |
           echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
-
-          ssh -o StrictHostKeyChecking=no -i private_key ${USER}@${HOST} << 'EOF'
-            # Authenticate Docker with AWS ECR
+          ssh -o StrictHostKeyChecking=no -i private_key ${USER}@${HOST} "
+            source /home/ubuntu/.aws-cli-venv/bin/activate
             aws ecr get-login-password --region us-east-1 | sudo docker login --username AWS --password-stdin $ECR_REGISTRY
-
-            # Stop and remove existing container (if it exists)
-            if [ "$(sudo docker ps -aq -f name=blog_web)" ]; then
-              echo "Stopping and removing existing container 'blog_web'..."
+            if [ \"\$(docker ps -aq -f name=blog_web)\" ]; then
+              echo 'Stopping and removing existing container ''blog_web''...'
               sudo docker stop blog_web
               sudo docker rm blog_web
             fi
-
-            # Pull the new image from ECR
-            echo "Pulling the new Docker image from ECR..."
             sudo docker pull $ECR_REGISTRY/blog_project-web:$IMAGE_TAG
-
-            # Run the new container
-            echo "Running the new Docker container..."
-            sudo docker run -d --name blog_web -p 8000:8000 \
-              -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
-              -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
-              -e AWS_STORAGE_BUCKET_NAME=$AWS_STORAGE_BUCKET_NAME \
+            sudo docker run --rm -d --name blog_web -p 8000:8000 \
+              -e AWS_ACCESS_KEY_ID='$AWS_ACCESS_KEY_ID' \
+              -e AWS_SECRET_ACCESS_KEY='$AWS_SECRET_ACCESS_KEY' \
+              -e AWS_STORAGE_BUCKET_NAME='$AWS_STORAGE_BUCKET_NAME' \
               $ECR_REGISTRY/blog_project-web:$IMAGE_TAG
-
-            # Run database migrations inside the container
-            echo "Running database migrations inside the container..."
-            sudo docker exec blog_web python manage.py migrate || echo "Migration failed. Check container logs."
-          EOF
+            sudo docker exec blog_web python manage.py migrate
+          "
