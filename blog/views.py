@@ -19,7 +19,7 @@ def create_post(request):
                 post.author = request.user
                 post.save()
                 log_message = f"New post created: {post.title}"
-                log_to_cloudwatch(log_message, "DjangoBlogLogs", "PostCreation")
+                log_to_cloudwatch(log_message, "DjangoBlogLogs3", "PostCreation")
                 logger.info(log_message)
                 return redirect('post_detail', pk=post.pk)
             except Exception as e:
